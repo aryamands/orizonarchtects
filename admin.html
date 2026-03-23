@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel | Orizon</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+
+  <script>
+    // 🔐 SAFE CHECK
+    try {
+      const session = JSON.parse(localStorage.getItem("adminSession"));
+
+      console.log("Session check:", session);
+
+      if (!session || session.loggedIn !== true) {
+        console.log("Not logged in ❌");
+        window.location.replace("login.html");
+      } else {
+        console.log("Access granted ✅");
+      }
+
+    } catch (err) {
+      console.error("Session error", err);
+      window.location.replace("login.html");
+    }
+  </script>
+</head>
+
+<body>
+
+<section class="admin-container">
+
+  <h2>Admin Panel</h2>
+
+  <button onclick="logout()">Logout</button>
+
+  <form id="articleForm">
+
+    <input type="text" id="title" placeholder="Article Title" required>
+    <input type="text" id="image" placeholder="Image URL">
+    <textarea id="content" placeholder="Write article..." required></textarea>
+
+    <button type="submit">Publish</button>
+
+  </form>
+
+</section>
+
+<script>
+function logout() {
+  localStorage.removeItem("adminSession");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>
