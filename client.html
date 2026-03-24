@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Client Database</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<section class="client-container">
+
+  <h2>Client Database DB</h2>
+
+  <form id="clientForm" class="client-form">
+
+    <input type="text" id="clientName" placeholder="Client Name" required>
+
+    <input type="text" id="companyName" placeholder="Company Name">
+
+    <input type="text" id="contactPerson" placeholder="Contact Person">
+
+    <input type="email" id="email" placeholder="Email">
+
+    <input type="text" id="phone" placeholder="Phone">
+
+    <input type="text" id="projectType" placeholder="Project Type (Residential, Commercial, etc.)">
+
+    <input type="text" id="budget" placeholder="Budget">
+
+    <textarea id="notes" placeholder="Notes / Requirements"></textarea>
+
+    <button type="submit">Save Client</button>
+
+  </form>
+
+</section>
+
+<script>
+document.getElementById("clientForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    clientName: document.getElementById("clientName").value,
+    companyName: document.getElementById("companyName").value,
+    contactPerson: document.getElementById("contactPerson").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
+    projectType: document.getElementById("projectType").value,
+    budget: document.getElementById("budget").value,
+    notes: document.getElementById("notes").value
+  };
+
+  try {
+    const res = await fetch("https://orizon-backend.onrender.com/add-client", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      alert("Client saved successfully ✅");
+      document.getElementById("clientForm").reset();
+    } else {
+      alert(result.error || "Error saving client");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+});
+</script>
+
+</body>
+</html>
