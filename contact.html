@@ -4,97 +4,101 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Contact | Orizon Architects</title>
+
   <link rel="stylesheet" href="style.css"/>
+
+  <!-- PREMIUM FONTS -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-  <!-- NAVBAR -->
+  <!-- ================= NAVBAR ================= -->
   <header id="navbar">
     <div class="logo">ORIZON</div>
     <nav>
       <a href="index.html">Home</a>
-      <a href="#">Projects</a>
+      <a href="projects.html">Projects</a>
       <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
+      <a href="contact.html" class="active">Contact</a>
     </nav>
   </header>
 
-  <!-- HERO -->
-  <section class="contact-hero">
-    <h1>Contact</h1>
-  </section>
+  <!-- ================= CURVED HERO ================= -->
+  <section class="contact-hero-new">
 
-  <!-- CONTACT SECTION -->
-  <section class="contact-wrapper">
+    <div class="contact-hero-bg"></div>
 
-    <div class="contact-main">
-
-      <p class="contact-intro">
-        For new projects, collaborations, or general inquiries,
-        please fill out the form below or contact us directly.
-      </p>
-
-      <form class="contact-form">
-
-        <div class="form-group">
-          <label>Name</label>
-          <input type="text" id="name" required>
-        </div>
-
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="email" required>
-        </div>
-
-        <div class="form-group">
-          <label>Message</label>
-          <textarea id="message" rows="4" required></textarea>
-        </div>
-
-        <button type="submit" class="submit-btn">Submit</button>
-
-      </form>
-
-    </div>
-
-    <div class="contact-sidebar">
-      <div class="contact-block">
-        <h4>Email</h4>
-        <p>contact@orizonarchitects.com</p>
-      </div>
-
-      <div class="contact-block">
-        <h4>Phone</h4>
-        <p>+91 98765 43210</p>
-      </div>
-
-      <div class="contact-block">
-        <h4>Office</h4>
-        <p>Mumbai, India</p>
-      </div>
+    <div class="contact-title fade-in">
+      <h1>Contact</h1>
     </div>
 
   </section>
 
-  <!-- MAP -->
+  <!-- ================= CONTACT CARD ================= -->
+  <section class="contact-card-section">
+
+    <div class="contact-card fade-in">
+
+      <!-- LEFT SIDE -->
+      <div class="contact-left">
+
+        <h2>Start a Conversation</h2>
+
+        <p class="contact-desc">
+          Tell us about your vision — we’ll turn it into reality with precision and elegance.
+        </p>
+
+        <!-- FORM -->
+        <form class="contact-form">
+
+          <input type="text" id="name" placeholder="Name" required>
+          <input type="email" id="email" placeholder="Email" required>
+          <textarea id="message" placeholder="Your message" rows="4" required></textarea>
+
+          <button type="submit" class="submit-btn">Send</button>
+
+        </form>
+
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="contact-right">
+
+        <div class="info-block">
+          <h4>Email</h4>
+          <p>contact@orizonarchitects.com</p>
+        </div>
+
+        <div class="info-block">
+          <h4>Phone</h4>
+          <p>+91 98765 43210</p>
+        </div>
+
+        <div class="info-block">
+          <h4>Office</h4>
+          <p>Mumbai, India</p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ================= MAP ================= -->
   <section class="map-section">
     <iframe 
       src="https://www.google.com/maps?q=Mumbai,India&output=embed"
-      width="100%" 
-      height="450" 
-      style="border:0;" 
       loading="lazy">
     </iframe>
   </section>
 
-  <!-- FOOTER -->
+  <!-- ================= FOOTER ================= -->
   <footer>
     <p>© 2026 Orizon Architects</p>
   </footer>
 
-  <!-- ✅ ONLY SCRIPT HERE -->
   <script src="script.js"></script>
 
 </body>

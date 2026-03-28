@@ -1,5 +1,4 @@
 const fs = require("fs");
-const nodemailer = require("nodemailer");
 const path = require("path");
 
 // Log file path
@@ -23,12 +22,3 @@ URL: ${req.originalUrl}
 };
 
 module.exports = logger;
-// ================= EMAIL SETUP =================
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-exports.transporter = transporter;

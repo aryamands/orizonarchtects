@@ -2,32 +2,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const BASE_URL = "https://orizon-backend.onrender.com";
 
-  // ================= CONTACT =================
+  // ================= SAFE FETCH =================
+  async function safeFetch(url, options = {}) {
+    try {
+      const res = await fetch(url, options);
+      let data;
+
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
+      return { ok: res.ok, data };
+
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      return { ok: false, data: { error: "Network error" } };
+    }
+  }
+
+  // ================= NAVBAR SCROLL =================
+  const navbar = document.querySelector("header");
+
+  window.addEventListener("scroll", () => {
+    if (navbar) {
+      navbar.classList.toggle("scrolled", window.scrollY > 50);
+    }
+  });
+
+  // ================= FADE-IN ANIMATION =================
+  const faders = document.querySelectorAll(".fade-in");
+
+  function fadeIn() {
+    faders.forEach(el => {
+      const top = el.getBoundingClientRect().top;
+      if (top < window.innerHeight - 100) {
+        el.classList.add("show");
+      }
+    });
+  }
+
+  window.addEventListener("scroll", fadeIn);
+  fadeIn();
+
+  // ================= CONTACT FORM =================
   const contactForm = document.querySelector(".contact-form");
 
   if (contactForm) {
     contactForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const message = document.getElementById("message").value.trim();
+      const name = document.getElementById("name")?.value.trim();
+      const email = document.getElementById("email")?.value.trim();
+      const message = document.getElementById("message")?.value.trim();
 
-      try {
-        const res = await fetch(`${BASE_URL}/contact`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, message })
-        });
+      if (!name || !email || !message) {
+        alert("Please fill all fields");
+        return;
+      }
 
-        const data = await res.json();
-        alert(data.message || data.error);
+      const { ok, data } = await safeFetch(`${BASE_URL}/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email, message })
+      });
 
-        if (res.ok) contactForm.reset();
-
-      } catch (err) {
-        console.error(err);
-        alert("Contact failed ❌");
+      if (ok) {
+        alert("Message sent successfully ✅");
+        contactForm.reset();
+      } else {
+        alert(data.error || "Something went wrong ❌");
       }
     });
   }
@@ -41,21 +88,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const email = newsletterForm.querySelector("input").value.trim();
 
-      try {
-        const res = await fetch(`${BASE_URL}/subscribe`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email })
-        });
+      if (!email) {
+        alert("Enter email");
+        return;
+      }
 
-        const data = await res.json();
-        alert(data.message || data.error);
+      const { ok, data } = await safeFetch(`${BASE_URL}/subscribe`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email })
+      });
 
-        if (res.ok) newsletterForm.reset();
-
-      } catch (err) {
-        console.error(err);
-        alert("Newsletter failed ❌");
+      if (ok) {
+        alert("Subscribed successfully ✅");
+        newsletterForm.reset();
+      } else {
+        alert(data.error || "Subscription failed ❌");
       }
     });
   }
@@ -65,23 +115,127 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("articles-container");
     if (!container) return;
 
-    try {
-      const res = await fetch(`${BASE_URL}/articles`);
-      const articles = await res.json();
+    const { ok, data } = await safeFetch(`${BASE_URL}/articles`);
 
-      container.innerHTML = articles.map(article => `
-        <div class="article-card">
-          <h3>${article.title}</h3>
-          ${article.image ? `<img src="${article.image}">` : ""}
-          <p>${article.content}</p>
-        </div>
-      `).join("");
+    if (!ok) return;
 
-    } catch (err) {
-      console.error(err);
-    }
+    container.innerHTML = data.map(article => `
+      <div class="article-card">
+        <h3>${article.title}</h3>
+        ${article.image ? `<img src="${article.image}" alt="">` : ""}
+        <p>${article.content}</p>
+      </div>
+    `).join("");
   }
 
   loadArticles();
 
-});
+  // ================= PROJECT HOVER TILT =================
+  const projectCards = document.querySelectorAll(".project-card");
+
+  projectCards.forEach(card => {
+    card.addEventListener("mousemove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const rotateX = (y / rect.height - 0.5) * 10;
+      const rotateY = (x / rect.width - 0.5) * -10;
+
+      card.style.transform = `
+        perspective(1000px)
+        rotateX(${rotateX}deg)
+        rotateY(${rotateY}deg)
+        scale(1.03)
+      `;
+    });
+
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "none";
+    });
+  });
+
+  // ================= CONTACT INPUT MICRO UX =================
+  const inputs = document.querySelectorAll(".contact-form input, .contact-form textarea");
+
+  inputs.forEach(input => {
+    input.addEventListener("focus", () => {
+      input.style.boxShadow = "0 0 10px rgba(0,0,0,0.1)";
+      input.style.transform = "scale(1.02)";
+    });
+
+    input.addEventListener("blur", () => {
+      input.style.boxShadow = "none";
+      input.style.transform = "scale(1)";
+    });
+  });
+
+  // ================= BUTTON CLICK FEEDBACK =================
+  const buttons = document.querySelectorAll(".submit-btn");
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.style.transform = "scale(0.95)";
+      setTimeout(() => {
+        btn.style.transform = "scale(1)";
+      }, 150);
+    });
+  });
+
+  // ================= ADMIN LOGIN =================
+  const loginForm = document.getElementById("loginForm");
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      const { ok, data } = await safeFetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (ok) {
+        localStorage.setItem("admin", "true");
+        window.location.href = "dashboard.html";
+      } else {
+        alert(data.error || "Login failed ❌");
+      }
+    });
+  }
+
+  // ================= PROTECT DASHBOARD =================
+  const currentPage = window.location.pathname.split("/").pop();
+
+  if (currentPage === "dashboard.html") {
+    if (!localStorage.getItem("admin")) {
+      alert("Unauthorized ❌");
+      window.location.href = "mainadmin.html";
+    }
+  }
+
+}); // END DOM
+
+// ================= GLOBAL FUNCTIONS =================
+
+// LOGOUT
+function logout() {
+  localStorage.removeItem("admin");
+  window.location.href = "mainadmin.html";
+}
+
+// DOWNLOAD DATA
+function downloadData(type) {
+  if (!localStorage.getItem("admin")) {
+    alert("Unauthorized ❌");
+    window.location.href = "mainadmin.html";
+    return;
+  }
+
+  window.open(`https://orizon-backend.onrender.com/export/${type}`, "_blank");
+}

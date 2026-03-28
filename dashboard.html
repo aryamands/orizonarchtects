@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard | Orizon</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="admin-container">
+
+  <h2>Data Dashboard</h2>
+
+  <div class="admin-buttons">
+
+    <button onclick="downloadData('newsletter')">
+      Download Newsletter Data
+    </button>
+
+    <button onclick="downloadData('contact')">
+      Download Contact Form Data
+    </button>
+
+    <button onclick="downloadData('client')">
+      Download Client Data
+    </button>
+
+  </div>
+
+  <br><br>
+
+  <button class="logout-btn" onclick="logout()">
+    Logout
+  </button>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

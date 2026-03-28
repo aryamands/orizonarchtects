@@ -11,19 +11,17 @@ const Joi = require("joi");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const logger = require("./logger");
+const ExcelJS = require("exceljs");
 
 const app = express();
 
 // ================= MIDDLEWARE =================
-
-// ✅ FIXED CORS (CRITICAL)
 app.use(cors({
   origin: ["https://orizons.in", "https://www.orizons.in"],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
 
-// ✅ HANDLE PREFLIGHT (CRITICAL)
 app.options("*", cors());
 
 app.use(express.json());
@@ -42,13 +40,11 @@ app.get("/", (req, res) => {
 });
 
 // ================= DB CONNECT =================
-const MONGO_URI = process.env.MONGO_URI;
-
-mongoose.connect(MONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected ✅"))
   .catch(err => console.error("DB ERROR:", err));
 
-// ================= EMAIL SETUP (SAFE DISABLED) =================
+// ================= EMAIL SETUP =================
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -59,7 +55,6 @@ const transporter = nodemailer.createTransport({
 
 // ================= SCHEMAS =================
 
-// CONTACT
 const Contact = mongoose.model("Contact", new mongoose.Schema({
   name: String,
   email: String,
@@ -67,13 +62,11 @@ const Contact = mongoose.model("Contact", new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
-// NEWSLETTER
 const Newsletter = mongoose.model("Newsletter", new mongoose.Schema({
   email: String,
   createdAt: { type: Date, default: Date.now }
 }));
 
-// ARTICLE
 const Article = mongoose.model("Article", new mongoose.Schema({
   title: String,
   content: String,
@@ -81,13 +74,11 @@ const Article = mongoose.model("Article", new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }));
 
-// USER
 const User = mongoose.model("User", new mongoose.Schema({
   username: String,
   password: String
 }));
 
-// CLIENT
 const Client = mongoose.model("Client", new mongoose.Schema({
   clientName: String,
   companyName: String,
@@ -103,8 +94,6 @@ const Client = mongoose.model("Client", new mongoose.Schema({
 // ================= CONTACT =================
 app.post("/contact", async (req, res) => {
   try {
-    console.log("CONTACT:", req.body);
-
     let { name, email, message } = req.body;
 
     name = mongoSanitize(xss(name));
@@ -113,8 +102,6 @@ app.post("/contact", async (req, res) => {
 
     const newContact = new Contact({ name, email, message });
     await newContact.save();
-
-    console.log("Email skipped");
 
     res.json({ message: "Message sent successfully ✅" });
 
@@ -127,8 +114,6 @@ app.post("/contact", async (req, res) => {
 // ================= NEWSLETTER =================
 app.post("/subscribe", async (req, res) => {
   try {
-    console.log("SUBSCRIBE:", req.body);
-
     let { email } = req.body;
 
     email = email.trim().toLowerCase();
@@ -139,8 +124,7 @@ app.post("/subscribe", async (req, res) => {
       return res.json({ message: "Already subscribed ✅" });
     }
 
-    const newSub = new Newsletter({ email });
-    await newSub.save();
+    await Newsletter.create({ email });
 
     res.json({ message: "Subscribed successfully ✅" });
 
@@ -155,13 +139,11 @@ app.post("/add-article", async (req, res) => {
   try {
     const { title, content, image } = req.body;
 
-    const newArticle = new Article({ title, content, image });
-    await newArticle.save();
+    await Article.create({ title, content, image });
 
     res.json({ message: "Article added ✅" });
 
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Error adding article" });
   }
 });
@@ -174,64 +156,112 @@ app.get("/articles", async (req, res) => {
 // ================= CLIENT =================
 app.post("/add-client", async (req, res) => {
   try {
-    console.log("🔥 CLIENT ROUTE HIT");
-    console.log("BODY:", req.body);
-
     const data = req.body;
 
     if (!data.clientName) {
       return res.status(400).json({ error: "Client name required" });
     }
 
-    const newClient = new Client(data);
-    await newClient.save();
-
-    console.log("✅ CLIENT SAVED");
+    await Client.create(data);
 
     res.json({ message: "Client saved successfully ✅" });
 
   } catch (err) {
-    console.error("💥 CLIENT ERROR:", err);
+    console.error("CLIENT ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// ================= AUTH =================
-app.post("/register", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || password.length < 6) {
-      return res.status(400).json({ error: "Password must be 6+ characters" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = new User({ username, password: hashedPassword });
-    await user.save();
-
-    res.json({ message: "Admin registered ✅" });
-
-  } catch (err) {
-    res.status(500).json({ error: "Error registering" });
-  }
-});
-
+// ================= ADMIN LOGIN =================
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ error: "Missing credentials" });
+    }
+
     const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ error: "User not found" });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid username" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Incorrect password" });
+
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid password" });
+    }
 
     res.json({ message: "Login successful ✅" });
 
   } catch (err) {
+    console.error("LOGIN ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
+});
+
+// ================= EXPORT NEWSLETTER =================
+app.get("/export/newsletter", async (req, res) => {
+  const data = await Newsletter.find();
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Newsletter");
+
+  sheet.columns = [
+    { header: "Email", key: "email" },
+    { header: "Date", key: "createdAt" }
+  ];
+
+  data.forEach(item => sheet.addRow(item));
+
+  res.setHeader("Content-Disposition", "attachment; filename=newsletter.xlsx");
+
+  await workbook.xlsx.write(res);
+  res.end();
+});
+
+// ================= EXPORT CONTACT =================
+app.get("/export/contact", async (req, res) => {
+  const data = await Contact.find();
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Contacts");
+
+  sheet.columns = [
+    { header: "Name", key: "name" },
+    { header: "Email", key: "email" },
+    { header: "Message", key: "message" }
+  ];
+
+  data.forEach(item => sheet.addRow(item));
+
+  res.setHeader("Content-Disposition", "attachment; filename=contacts.xlsx");
+
+  await workbook.xlsx.write(res);
+  res.end();
+});
+
+// ================= EXPORT CLIENT =================
+app.get("/export/client", async (req, res) => {
+  const data = await Client.find();
+
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Clients");
+
+  sheet.columns = [
+    { header: "Client Name", key: "clientName" },
+    { header: "Company", key: "companyName" },
+    { header: "Email", key: "email" },
+    { header: "Phone", key: "phone" }
+  ];
+
+  data.forEach(item => sheet.addRow(item));
+
+  res.setHeader("Content-Disposition", "attachment; filename=clients.xlsx");
+
+  await workbook.xlsx.write(res);
+  res.end();
 });
 
 // ================= START =================
