@@ -182,60 +182,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // ================= ADMIN LOGIN =================
-  const loginForm = document.getElementById("loginForm");
-
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      const { ok, data } = await safeFetch(`${BASE_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (ok) {
-        localStorage.setItem("admin", "true");
-        window.location.href = "dashboard.html";
-      } else {
-        alert(data.error || "Login failed ❌");
-      }
-    });
-  }
-
-  // ================= PROTECT DASHBOARD =================
-  const currentPage = window.location.pathname.split("/").pop();
-
-  if (currentPage === "dashboard.html") {
-    if (!localStorage.getItem("admin")) {
-      alert("Unauthorized ❌");
-      window.location.href = "mainadmin.html";
-    }
-  }
-
 }); // END DOM
 
-// ================= GLOBAL FUNCTIONS =================
+// ================= GLOBAL FUNCTION =================
 
-// LOGOUT
-function logout() {
-  localStorage.removeItem("admin");
-  window.location.href = "mainadmin.html";
-}
-
-// DOWNLOAD DATA
+// DOWNLOAD DATA (NOW PUBLIC)
 function downloadData(type) {
-  if (!localStorage.getItem("admin")) {
-    alert("Unauthorized ❌");
-    window.location.href = "mainadmin.html";
-    return;
-  }
-
   window.open(`https://orizon-backend.onrender.com/export/${type}`, "_blank");
 }
