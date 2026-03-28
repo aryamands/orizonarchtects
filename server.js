@@ -15,6 +15,8 @@ const ExcelJS = require("exceljs");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // ================= MIDDLEWARE =================
 app.use(cors({
   origin: ["https://orizons.in", "https://www.orizons.in"],
@@ -114,6 +116,8 @@ app.post("/contact", async (req, res) => {
 // ================= NEWSLETTER =================
 app.post("/subscribe", async (req, res) => {
   try {
+    console.log("BODY:", req.body); // 👈 ADD
+
     let { email } = req.body;
 
     email = email.trim().toLowerCase();
@@ -129,8 +133,8 @@ app.post("/subscribe", async (req, res) => {
     res.json({ message: "Subscribed successfully ✅" });
 
   } catch (err) {
-    console.error("SUBSCRIBE ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("SUBSCRIBE ERROR FULL:", err); // 👈 IMPORTANT
+    res.status(500).json({ error: err.message }); // 👈 SHOW REAL ERROR
   }
 });
 
